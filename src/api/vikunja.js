@@ -1,5 +1,20 @@
-const API_URL = import.meta.env.VITE_VIKUNJA_API_URL || '/api/v1';
-const API_TOKEN = import.meta.env.VITE_VIKUNJA_API_TOKEN;
+const getEnv = (key) => {
+  // Keep this for potential other uses, but we rely on the proxy now
+  if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG[key]) {
+    return window.RUNTIME_CONFIG[key];
+  }
+  return import.meta.env[key];
+};
+
+// Always use relative path. The proxy (Vite in dev, Express in prod) will handle the rest.
+const API_URL = '/api/v1';
+const API_TOKEN = getEnv('VITE_VIKUNJA_API_TOKEN');
+
+console.log('Vikunja API Config:', {
+  url: API_URL,
+  hasToken: !!API_TOKEN,
+  mode: import.meta.env.MODE
+});
 
 class VikunjaAPI {
   constructor() {
@@ -15,19 +30,36 @@ class VikunjaAPI {
       ...options.headers,
     };
 
+    console.log(`[API] Requesting ${url}`, { method: options.method || 'GET', headers });
+
     try {
       const response = await fetch(url, {
         ...options,
         headers,
       });
 
+      console.log(`[API] Response from ${url}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get("content-type")
+      });
+
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") === -1) {
+        const text = await response.text();
+        console.error('[API] Non-JSON response:', text.substring(0, 150));
+        throw new Error(`API returned non-JSON response (status ${response.status}). The API URL might be incorrect.`);
+      }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log(`[API] Data received from ${url}:`, data);
+      return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('[API] Request failed:', error);
       throw error;
     }
   }

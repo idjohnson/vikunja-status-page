@@ -74,6 +74,69 @@ The production-ready files will be in the `dist/` directory.
 npm run preview
 ```
 
+## Docker Deployment
+
+You can run the application in a Docker container using Node.js 22.
+
+### 1. Build the Docker Image
+
+```bash
+docker build -t vikunja-status-page .
+```
+
+### 2. Create Your .env File
+
+Create a `.env` file with your configuration:
+
+```env
+VITE_VIKUNJA_API_URL=https://vikunja.steeped.icu/api/v1
+VITE_VIKUNJA_API_TOKEN=your_api_token_here
+```
+
+### 3. Run the Container
+
+```bash
+docker run -d -p 3000:3000 -v "${PWD}/.env:/app/.env:ro" --name vikunja-status vikunja-status-page
+```
+
+On Windows PowerShell:
+
+```powershell
+docker run -d -p 3000:3000 -v "${PWD}/.env:/app/.env:ro" --name vikunja-status vikunja-status-page
+```
+
+On Windows Command Prompt:
+
+```cmd
+docker run -d -p 3000:3000 -v "%cd%/.env:/app/.env:ro" --name vikunja-status vikunja-status-page
+```
+
+The application will be available at `http://localhost:3000`
+
+### 4. Update Configuration Without Rebuilding
+
+To change your API key or URL:
+
+1. Edit your `.env` file
+2. Restart the container:
+
+```bash
+docker restart vikunja-status
+```
+
+### 5. View Logs
+
+```bash
+docker logs vikunja-status
+```
+
+### 6. Stop and Remove Container
+
+```bash
+docker stop vikunja-status
+docker rm vikunja-status
+```
+
 ## How It Works
 
 ### Task Filtering
