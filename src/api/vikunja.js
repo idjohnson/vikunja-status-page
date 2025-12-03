@@ -1,5 +1,6 @@
 const API_URL = (window.env && window.env.VITE_VIKUNJA_API_URL) || import.meta.env.VITE_VIKUNJA_API_URL || '/api/v1';
 const API_TOKEN = (window.env && window.env.VITE_VIKUNJA_API_TOKEN) || import.meta.env.VITE_VIKUNJA_API_TOKEN;
+const USER_REQUEST_LABEL = (window.env && window.env.VITE_USER_REQUEST_LABEL) || import.meta.env.VITE_USER_REQUEST_LABEL || 'userrequest';
 
 class VikunjaAPI {
   constructor() {
@@ -50,25 +51,26 @@ class VikunjaAPI {
   }
 
   /**
-   * Get all tasks with the 'userrequest' label
+   * Get all tasks with a specific label
    * Uses the filter parameter to query tasks by label
+   * @param {string} labelName - The label name to filter by (defaults to env VITE_USER_REQUEST_LABEL or 'userrequest')
    */
-  async getUserRequestTasks() {
-    // Get all labels first to find the userrequest label ID
+  async getUserRequestTasks(labelName = USER_REQUEST_LABEL) {
+    // Get all labels first to find the label ID
     const labels = await this.getLabels();
-    const userRequestLabel = labels.find(
-      label => label.title.toLowerCase() === 'userrequest'
+    const requestLabel = labels.find(
+      label => label.title.toLowerCase() === labelName.toLowerCase()
     );
 
-    if (!userRequestLabel) {
-      console.warn('No "userrequest" label found');
+    if (!requestLabel) {
+      console.warn(`No "${labelName}" label found`);
       return [];
     }
 
     // Filter tasks by label using the filter parameter
     // The filter syntax is: labels = <label_id>
     const tasks = await this.getAllTasks({
-      filter: `labels = ${userRequestLabel.id}`,
+      filter: `labels = ${requestLabel.id}`,
       per_page: 100,
     });
 
