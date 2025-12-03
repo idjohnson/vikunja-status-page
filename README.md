@@ -210,11 +210,28 @@ $ export VER=16 && docker stop vikunja-status && docker rm vikunja-status && doc
 
 The Docker container uses a custom entrypoint script that reads the mounted `.env` file and generates a runtime configuration file (`config.js`). This allows you to change environment variables without rebuilding the image.
 
-**Important:** To utilize the Nginx proxy and avoid CORS issues, set your `VITE_VIKUNJA_API_URL` in `.env` to a relative path:
+**Important:** To utilize the Nginx proxy and avoid CORS issues, set your `VITE_VIKUNJA_API_URL` and `VITE_VIKUNJA_BASE_URL` in `.env`:
 
 ```env
+VITE_VIKUNJA_BASE_URL=https://vikunja.steeped.icu
 VITE_VIKUNJA_API_URL=/api/v1
 VITE_VIKUNJA_API_TOKEN=your_token_here
 ```
 
 This ensures API requests are routed through the local Nginx server, which then forwards them to the actual Vikunja instance.
+
+# Parameters
+
+The default is to expose features with the label "userrequest". 
+
+If you want to change this, pass a "VITE_USER_REQUEST_LABEL" to the container.
+
+For instance, I have a "spam" label so to make this a "Spam" showing page:
+
+```
+$ docker build -t vikunja-status-page:123 . 
+$ docker run -d -p 3030:3030 \
+-v "${PWD}/.env:/app/.env:ro" \
+-e VITE_USER_REQUEST_LABEL="spam" \
+--name vikunja-status vikunja-status-page:123
+```
