@@ -1,5 +1,5 @@
-const API_URL = import.meta.env.VITE_VIKUNJA_API_URL || '/api/v1';
-const API_TOKEN = import.meta.env.VITE_VIKUNJA_API_TOKEN;
+const API_URL = (window.env && window.env.VITE_VIKUNJA_API_URL) || import.meta.env.VITE_VIKUNJA_API_URL || '/api/v1';
+const API_TOKEN = (window.env && window.env.VITE_VIKUNJA_API_TOKEN) || import.meta.env.VITE_VIKUNJA_API_TOKEN;
 
 class VikunjaAPI {
   constructor() {

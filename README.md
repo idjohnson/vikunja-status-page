@@ -174,3 +174,47 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
+
+## Docker Support
+
+You can run the application using Docker. This setup includes an Nginx server that serves the application on port 3030 and proxies API requests to avoid CORS issues.
+
+NOTE: the `.env` file needs to use Linux LFs so that it is properl put into the Nginx path on the container by the docker entrypoint script.  I recommend using `dos2unix .env` to ensure proper line endings.
+
+### 1. Build the Docker Image
+
+```bash
+docker build -t vikunja-status-page .
+```
+
+### 2. Run the Container
+
+You must mount your `.env` file to the container to provide configuration.
+
+```bash
+docker run -d \
+  -p 3030:3030 \
+  -v $(pwd)/.env:/app/.env \
+  vikunja-status-page
+```
+
+The application will be available at `http://localhost:3030`.
+
+A common approach I use is to build and run locally with new versions each time:
+
+```
+$ export VER=16 && docker stop vikunja-status && docker rm vikunja-status && docker build -t vikunja-status-page:$VER . && docker run -d -p 3030:3030 -v "${PWD}/.env:/app/.env:ro" --name vikunja-status vikunja-status-page:$VER
+```
+
+### Runtime Configuration
+
+The Docker container uses a custom entrypoint script that reads the mounted `.env` file and generates a runtime configuration file (`config.js`). This allows you to change environment variables without rebuilding the image.
+
+**Important:** To utilize the Nginx proxy and avoid CORS issues, set your `VITE_VIKUNJA_API_URL` in `.env` to a relative path:
+
+```env
+VITE_VIKUNJA_API_URL=/api/v1
+VITE_VIKUNJA_API_TOKEN=your_token_here
+```
+
+This ensures API requests are routed through the local Nginx server, which then forwards them to the actual Vikunja instance.
