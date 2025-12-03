@@ -1,0 +1,40 @@
+name: GitHub CICD
+on:
+  push:
+    branches:
+      - master
+      - main
+      
+jobs:
+  HostedActions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Build Dockerfile
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          docker build -t $BUILDIMGTAG .
+          docker images
+      - name: Tag and Push (Harbor)
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          export FINALBUILDTAG="`cat Dockerfile | tail -n1 | sed 's/^#//g'`"
+          docker tag $BUILDIMGTAG $FINALBUILDTAG
+          docker images
+          echo $CR_PAT | docker login harbor.freshbrewed.science -u $CR_USER --password-stdin
+          docker push $FINALBUILDTAG
+        env: # Or as an environment variable
+          CR_PAT: ${{ secrets.CR_PAT }}
+          CR_USER: ${{ secrets.CR_USER }}
+      - name: Tag and Push (DockerHub)
+        run: |
+          export BUILDIMGTAG="`cat Dockerfile | tail -n1 | sed 's/^.*\///g'`"
+          export FINALBUILDTAG="$CR_USER/$BUILDIMGTAG"
+          docker tag $BUILDIMGTAG $FINALBUILDTAG
+          docker images
+          echo $CR_PAT | docker login -u $CR_USER --password-stdin
+          docker push $FINALBUILDTAG
+        env: # Or as an environment variable
+          CR_PAT: ${{ secrets.DH_PAT }}
+          CR_USER: idjohnson

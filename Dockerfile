@@ -33,3 +33,4 @@ EXPOSE 3030
 
 # Define entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]
+#harbor.freshbrewed.science/library/vikunjastatuspage:0.0.1
